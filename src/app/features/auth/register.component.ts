@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -9,86 +9,80 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <!-- Ambient glow effects -->
+      <div class="absolute top-0 right-1/4 w-96 h-96 bg-accent-500/30 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-primary-500/30 rounded-full blur-3xl"></div>
+
+      <!-- Register Card -->
+      <div class="glass-card p-10 w-full max-w-md relative z-10">
         <div class="text-center mb-8">
-          <div class="text-4xl mb-2">🚀</div>
-          <h1 class="text-2xl font-bold text-slate-800">Create Account</h1>
-          <p class="text-slate-500 mt-2">Start building better habits today</p>
+          <div class="text-5xl mb-4">🚀</div>
+          <h1 class="text-3xl font-bold">Create Account</h1>
+          <p class="text-white/40 mt-3">Start your habit journey today</p>
         </div>
 
-        @if (success()) {
-          <div class="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-center">
-            <p class="font-medium">Account created! 🎉</p>
-            <p class="text-sm mt-1">Redirecting to login...</p>
+        @if (authService.error()) {
+          <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl mb-6 text-sm text-center">
+            {{ authService.error() }}
           </div>
         }
 
-        @if (authService.error()) {
-          <div class="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-sm text-center">
-            {{ authService.error() }}
+        @if (success()) {
+          <div class="bg-success-500/10 border border-success-500/30 text-success-400 p-4 rounded-xl mb-6 text-sm text-center">
+            {{ success() }}
           </div>
         }
 
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+            <label class="block text-white/60 text-sm mb-2">Email</label>
             <input 
               type="email" 
               formControlName="email" 
-              class="input"
-              placeholder="you@example.com"
-              data-testid="email">
+              class="input-glass"
+              placeholder="you@example.com">
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Password</label>
+            <label class="block text-white/60 text-sm mb-2">Password</label>
             <input 
               [type]="showPassword() ? 'text' : 'password'" 
               formControlName="password" 
-              class="input"
-              placeholder="At least 8 characters"
-              data-testid="password">
-            @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
-              <p class="text-red-500 text-sm mt-1">Password must be at least 8 characters</p>
-            }
+              class="input-glass"
+              placeholder="Minimum 6 characters">
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
+            <label class="block text-white/60 text-sm mb-2">Confirm Password</label>
             <input 
               [type]="showPassword() ? 'text' : 'password'" 
               formControlName="confirmPassword" 
-              class="input"
-              placeholder="Confirm your password"
-              data-testid="confirm-password">
-            @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
-              <p class="text-red-500 text-sm mt-1">Passwords don't match</p>
+              class="input-glass"
+              placeholder="Repeat your password">
+            @if (registerForm.errors?.['mismatch'] && registerForm.get('confirmPassword')?.touched) {
+              <p class="text-red-400 text-sm mt-2">Passwords don't match</p>
             }
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-start gap-3">
             <input 
               type="checkbox" 
-              formControlName="acceptTerms" 
-              id="terms"
-              class="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500">
-            <label for="terms" class="text-sm text-slate-600">
-              I agree to the Terms of Service
+              formControlName="terms"
+              class="w-5 h-5 rounded bg-dark-600 border-white/20 text-primary-500 focus:ring-primary-500 mt-0.5">
+            <label class="text-white/60 text-sm">
+              I agree to the <a href="#" class="text-primary-400 hover:underline">Terms of Service</a> 
+              and <a href="#" class="text-primary-400 hover:underline">Privacy Policy</a>
             </label>
           </div>
 
           <button 
             type="submit" 
-            [disabled]="registerForm.invalid || authService.isLoading() || success()"
-            class="w-full btn-primary py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            data-testid="register-btn">
+            [disabled]="registerForm.invalid || authService.isLoading()"
+            class="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed">
             @if (authService.isLoading()) {
               <span class="inline-flex items-center gap-2">
-                <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
+                <div class="spinner w-5 h-5 border-2"></div>
                 Creating account...
               </span>
             } @else {
@@ -97,9 +91,11 @@ import { AuthService } from '../../core/services/auth.service';
           </button>
         </form>
 
-        <p class="text-center text-slate-500 mt-6">
+        <p class="text-center text-white/40 mt-8">
           Already have an account? 
-          <a routerLink="/login" class="text-primary-600 font-medium hover:underline">Sign in</a>
+          <a routerLink="/login" class="text-primary-400 font-medium hover:text-primary-300 transition-colors">
+            Sign in
+          </a>
         </p>
       </div>
     </div>
@@ -108,26 +104,25 @@ import { AuthService } from '../../core/services/auth.service';
 export class RegisterComponent {
   registerForm: FormGroup;
   showPassword = signal(false);
-  success = signal(false);
+  success = signal('');
 
   constructor(
     private fb: FormBuilder,
-    public authService: AuthService,
-    private router: Router
+    public authService: AuthService
   ) {
     this.registerForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
-      acceptTerms: [false, [Validators.requiredTrue]]
+      terms: [false, [Validators.requiredTrue]]
     }, { validators: this.passwordMatchValidator });
   }
 
-  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+  passwordMatchValidator(control: AbstractControl) {
     const password = control.get('password');
-    const confirm = control.get('confirmPassword');
-    if (password && confirm && password.value !== confirm.value) {
-      return { passwordMismatch: true };
+    const confirmPassword = control.get('confirmPassword');
+    if (password?.value !== confirmPassword?.value) {
+      return { mismatch: true };
     }
     return null;
   }
@@ -135,10 +130,12 @@ export class RegisterComponent {
   async onSubmit() {
     if (this.registerForm.valid) {
       const { email, password } = this.registerForm.value;
-      const result = await this.authService.signUp(email, password);
-      if (result) {
-        this.success.set(true);
-        setTimeout(() => this.router.navigate(['/login']), 2000);
+      try {
+        await this.authService.signUp(email, password);
+        this.success.set('Account created! Check your email to verify.');
+        this.registerForm.reset();
+      } catch (error) {
+        // Error handled by authService
       }
     }
   }

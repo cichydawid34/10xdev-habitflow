@@ -1,102 +1,120 @@
-import { Component, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-const ICONS = ['🏋️', '📚', '🧘', '💧', '🏃', '✍️', '🎸', '💤', '🥗', '📝', '🚿', '☀️'];
-const COLORS = ['#22c55e', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'];
-
 @Component({
-    selector: 'app-add-habit-dialog',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="close.emit()">
-      <div class="bg-white rounded-2xl w-full max-w-md p-6 m-4" (click)="$event.stopPropagation()">
-        <h2 class="text-xl font-bold text-slate-800 mb-6">Add New Habit</h2>
+  selector: 'app-add-habit-dialog',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <!-- Backdrop -->
+    <div 
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+      (click)="close.emit()">
+      
+      <!-- Dialog -->
+      <div 
+        class="glass-card p-8 w-full max-w-md relative"
+        (click)="$event.stopPropagation()">
+        
+        <!-- Close button -->
+        <button 
+          (click)="close.emit()"
+          class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors text-xl">
+          ✕
+        </button>
 
-        <div class="space-y-5">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Habit Name</label>
+        <h2 class="text-2xl font-bold text-white mb-6">Add New Habit</h2>
+
+        <form (ngSubmit)="onSubmit()">
+          <!-- Name -->
+          <div class="mb-6">
+            <label class="block text-white/60 text-sm mb-2">Habit Name</label>
             <input 
-              type="text" 
+              type="text"
               [(ngModel)]="name"
-              class="input"
+              name="name"
               placeholder="e.g., Morning workout"
-              data-testid="habit-name">
+              class="input-glass"
+              required>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Icon</label>
+          <!-- Icon Selection -->
+          <div class="mb-6">
+            <label class="block text-white/60 text-sm mb-2">Choose Icon</label>
             <div class="flex flex-wrap gap-2">
-              @for (icon of icons; track icon) {
-                <button 
+              @for (emoji of icons; track emoji) {
+                <button
                   type="button"
-                  (click)="selectedIcon.set(icon)"
-                  class="w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all"
-                  [class.bg-slate-100]="selectedIcon() !== icon"
-                  [class.bg-primary-100]="selectedIcon() === icon"
-                  [class.ring-2]="selectedIcon() === icon"
-                  [class.ring-primary-500]="selectedIcon() === icon">
-                  {{ icon }}
+                  (click)="selectedIcon = emoji"
+                  class="w-12 h-12 rounded-xl text-2xl transition-all"
+                  [class.bg-primary-500]="selectedIcon === emoji"
+                  [class.shadow-glow]="selectedIcon === emoji"
+                  [class.bg-dark-600]="selectedIcon !== emoji"
+                  [class.hover:bg-dark-500]="selectedIcon !== emoji">
+                  {{ emoji }}
                 </button>
               }
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Color</label>
-            <div class="flex flex-wrap gap-2">
+          <!-- Color Selection -->
+          <div class="mb-8">
+            <label class="block text-white/60 text-sm mb-2">Choose Color</label>
+            <div class="flex gap-3">
               @for (color of colors; track color) {
-                <button 
+                <button
                   type="button"
-                  (click)="selectedColor.set(color)"
-                  class="w-8 h-8 rounded-full transition-all"
+                  (click)="selectedColor = color"
+                  class="w-10 h-10 rounded-xl transition-all"
                   [style.backgroundColor]="color"
-                  [class.ring-2]="selectedColor() === color"
-                  [class.ring-offset-2]="selectedColor() === color"
-                  [class.ring-slate-400]="selectedColor() === color">
+                  [class.ring-2]="selectedColor === color"
+                  [class.ring-white]="selectedColor === color"
+                  [class.ring-offset-2]="selectedColor === color"
+                  [class.ring-offset-dark-700]="selectedColor === color">
                 </button>
               }
             </div>
           </div>
-        </div>
 
-        <div class="flex gap-3 mt-8">
-          <button 
-            (click)="close.emit()"
-            class="flex-1 btn-secondary">
-            Cancel
-          </button>
-          <button 
-            (click)="onSave()"
-            [disabled]="!name.trim()"
-            class="flex-1 btn-primary disabled:opacity-50"
-            data-testid="save-habit-btn">
-            Add Habit
-          </button>
-        </div>
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button 
+              type="button"
+              (click)="close.emit()"
+              class="btn-secondary flex-1">
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              class="btn-primary flex-1"
+              [disabled]="!name.trim()">
+              Create Habit
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   `
 })
 export class AddHabitDialogComponent {
-    @Output() close = new EventEmitter<void>();
-    @Output() save = new EventEmitter<{ name: string; icon: string; color: string }>();
+  @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<{ name: string; icon: string; color: string }>();
 
-    name = '';
-    selectedIcon = signal('🏋️');
-    selectedColor = signal('#22c55e');
+  name = '';
+  selectedIcon = '💪';
+  selectedColor = '#8b5cf6';
 
-    icons = ICONS;
-    colors = COLORS;
+  icons = ['💪', '📚', '🏃', '💧', '🧘', '✍️', '🎯', '💤', '🥗', '🎸'];
+  colors = ['#8b5cf6', '#3b82f6', '#22c55e', '#f97316', '#ef4444', '#ec4899'];
 
-    onSave() {
-        if (this.name.trim()) {
-            this.save.emit({
-                name: this.name.trim(),
-                icon: this.selectedIcon(),
-                color: this.selectedColor()
-            });
-        }
+  onSubmit() {
+    if (this.name.trim()) {
+      this.save.emit({
+        name: this.name.trim(),
+        icon: this.selectedIcon,
+        color: this.selectedColor
+      });
     }
+  }
 }

@@ -3,62 +3,85 @@ import { CommonModule } from '@angular/common';
 import { Habit } from '../../../shared/models';
 
 @Component({
-    selector: 'app-habit-card',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-habit-card',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div 
-      class="card hover:shadow-md transition-shadow cursor-pointer"
-      [class.ring-2]="habit.completedToday"
-      [class.ring-primary-500]="habit.completedToday"
-      [class.bg-primary-50]="habit.completedToday"
-      (click)="toggle.emit(habit)">
-      <div class="flex items-start justify-between">
-        <div class="flex items-center gap-3">
-          <div 
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            [style.backgroundColor]="habit.color + '20'">
-            {{ habit.icon }}
-          </div>
-          <div>
-            <h4 class="font-semibold text-slate-800">{{ habit.name }}</h4>
-            <div class="flex items-center gap-2 mt-1">
-              @if (habit.currentStreak && habit.currentStreak > 0) {
-                <span class="streak-badge">
-                  🔥 {{ habit.currentStreak }} days
-                </span>
-              } @else {
-                <span class="text-sm text-slate-400">No streak yet</span>
-              }
-            </div>
-          </div>
-        </div>
-        
-        <div class="flex items-center gap-2">
-          @if (habit.completedToday) {
-            <span class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white">
-              ✓
+      class="habit-card cursor-pointer group"
+      [class.habit-completed]="habit.completedToday"
+      (click)="toggle.emit(habit)"
+      [attr.data-testid]="'habit-' + habit.id">
+      
+      <!-- Icon -->
+      <div class="habit-icon">
+        {{ habit.icon }}
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 min-w-0">
+        <h4 class="font-semibold text-white truncate">{{ habit.name }}</h4>
+        <div class="flex items-center gap-2 mt-1">
+          @if (habit.currentStreak && habit.currentStreak > 0) {
+            <span class="streak-fire text-sm flex items-center gap-1">
+              🔥 {{ habit.currentStreak }} day streak
             </span>
           } @else {
-            <span class="w-8 h-8 border-2 border-slate-300 rounded-full"></span>
+            <span class="text-white/40 text-sm">Start your streak!</span>
           }
-          <button 
-            (click)="onDelete($event)"
-            class="text-slate-400 hover:text-red-500 p-1">
-            🗑️
-          </button>
         </div>
       </div>
+
+      <!-- Progress Ring -->
+      <div class="relative w-14 h-14 flex-shrink-0">
+        <svg class="progress-ring w-full h-full" viewBox="0 0 36 36">
+          <!-- Background circle -->
+          <circle
+            class="stroke-dark-500"
+            cx="18" cy="18" r="15.9"
+            fill="none"
+            stroke-width="3"
+          ></circle>
+          <!-- Progress circle -->
+          <circle
+            class="progress-ring__circle"
+            [class.stroke-success-500]="habit.completedToday"
+            [class.stroke-primary-500]="!habit.completedToday"
+            cx="18" cy="18" r="15.9"
+            fill="none"
+            stroke-width="3"
+            [attr.stroke-dasharray]="circumference"
+            [attr.stroke-dashoffset]="habit.completedToday ? 0 : circumference"
+          ></circle>
+        </svg>
+        <!-- Check icon -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          @if (habit.completedToday) {
+            <span class="text-success-400 text-xl">✓</span>
+          } @else {
+            <span class="text-white/30 group-hover:text-white/60 transition-colors">○</span>
+          }
+        </div>
+      </div>
+
+      <!-- Delete button -->
+      <button 
+        (click)="onDelete($event)"
+        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-red-400 p-1">
+        ✕
+      </button>
     </div>
   `
 })
 export class HabitCardComponent {
-    @Input({ required: true }) habit!: Habit;
-    @Output() toggle = new EventEmitter<Habit>();
-    @Output() delete = new EventEmitter<Habit>();
+  @Input() habit!: Habit;
+  @Output() toggle = new EventEmitter<Habit>();
+  @Output() delete = new EventEmitter<Habit>();
 
-    onDelete(event: Event) {
-        event.stopPropagation();
-        this.delete.emit(this.habit);
-    }
+  circumference = 2 * Math.PI * 15.9;
+
+  onDelete(event: Event) {
+    event.stopPropagation();
+    this.delete.emit(this.habit);
+  }
 }

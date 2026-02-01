@@ -6,80 +6,109 @@ import { Habit, HabitLog, DayActivity } from '../../shared/models';
 import { forkJoin } from 'rxjs';
 
 @Component({
-    selector: 'app-calendar',
-    standalone: true,
-    imports: [CommonModule, RouterLink],
-    template: `
-    <div class="min-h-screen bg-slate-50">
-      <!-- Header -->
-      <header class="bg-white border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <a routerLink="/dashboard" class="text-slate-400 hover:text-slate-600">←</a>
-            <span class="text-2xl">📅</span>
-            <h1 class="text-xl font-bold text-slate-800">Activity Calendar</h1>
+  selector: 'app-calendar',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  template: `
+    <div class="min-h-screen">
+      <!-- Ambient glow -->
+      <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-1/4 left-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <nav class="fixed left-0 top-0 bottom-0 w-20 lg:w-64 glass-card rounded-none border-r border-white/5 z-20">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-10">
+            <span class="text-3xl">🎯</span>
+            <h1 class="hidden lg:block text-xl font-bold bg-gradient-to-r from-white to-primary-400 bg-clip-text text-transparent">
+              HabitFlow
+            </h1>
+          </div>
+          <div class="space-y-2">
+            <a routerLink="/dashboard" class="nav-item">
+              <span class="text-xl">📊</span>
+              <span class="hidden lg:block">Dashboard</span>
+            </a>
+            <a routerLink="/calendar" class="nav-item active">
+              <span class="text-xl">📅</span>
+              <span class="hidden lg:block">Calendar</span>
+            </a>
+            <a routerLink="/books" class="nav-item">
+              <span class="text-xl">📚</span>
+              <span class="hidden lg:block">Books</span>
+            </a>
+            <a routerLink="/digest" class="nav-item">
+              <span class="text-xl">✨</span>
+              <span class="hidden lg:block">AI Digest</span>
+            </a>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <main class="max-w-6xl mx-auto px-4 py-8">
+      <!-- Main Content -->
+      <main class="ml-20 lg:ml-64 p-8 relative z-10">
+        <!-- Header -->
+        <div class="mb-8">
+          <h2 class="text-4xl font-bold">Activity Calendar</h2>
+          <p class="text-white/40 mt-2">Track your habit consistency over time</p>
+        </div>
+
         <!-- Legend -->
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-slate-800">{{ currentYear }}</h2>
-          <div class="flex items-center gap-2 text-sm text-slate-500">
+          <h3 class="text-2xl font-semibold text-white/90">{{ currentYear }}</h3>
+          <div class="flex items-center gap-2 text-sm text-white/40">
             <span>Less</span>
             <div class="flex gap-1">
-              <div class="w-3 h-3 rounded-sm bg-slate-200"></div>
-              <div class="w-3 h-3 rounded-sm bg-primary-200"></div>
-              <div class="w-3 h-3 rounded-sm bg-primary-400"></div>
-              <div class="w-3 h-3 rounded-sm bg-primary-600"></div>
-              <div class="w-3 h-3 rounded-sm bg-primary-800"></div>
+              <div class="w-4 h-4 rounded-sm bg-dark-600 border border-white/10"></div>
+              <div class="w-4 h-4 rounded-sm bg-primary-900/50"></div>
+              <div class="w-4 h-4 rounded-sm bg-primary-700/70"></div>
+              <div class="w-4 h-4 rounded-sm bg-primary-500"></div>
+              <div class="w-4 h-4 rounded-sm bg-primary-400 shadow-glow"></div>
             </div>
             <span>More</span>
           </div>
         </div>
 
         <!-- Months -->
-        <div class="flex gap-1 mb-2 text-xs text-slate-400">
+        <div class="flex gap-1 mb-3 text-xs text-white/40 ml-10">
           @for (month of months; track month) {
             <div class="flex-1 text-center">{{ month }}</div>
           }
         </div>
 
         <!-- Heatmap Grid -->
-        <div class="card overflow-x-auto">
+        <div class="glass-card p-6 overflow-x-auto">
           @if (isLoading()) {
-            <div class="flex justify-center py-12">
-              <svg class="animate-spin h-8 w-8 text-primary-500" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-              </svg>
+            <div class="flex justify-center py-16">
+              <div class="spinner"></div>
             </div>
           } @else {
-            <div class="flex gap-1">
+            <div class="flex gap-[3px]">
               <!-- Day labels -->
-              <div class="flex flex-col gap-1 text-xs text-slate-400 pr-2">
-                <div class="h-3"></div>
-                <div class="h-3">Mon</div>
-                <div class="h-3"></div>
-                <div class="h-3">Wed</div>
-                <div class="h-3"></div>
-                <div class="h-3">Fri</div>
-                <div class="h-3"></div>
+              <div class="flex flex-col gap-[3px] text-xs text-white/40 pr-3">
+                <div class="h-4"></div>
+                <div class="h-4 flex items-center">Mon</div>
+                <div class="h-4"></div>
+                <div class="h-4 flex items-center">Wed</div>
+                <div class="h-4"></div>
+                <div class="h-4 flex items-center">Fri</div>
+                <div class="h-4"></div>
               </div>
               
               <!-- Weeks -->
               @for (week of weeks(); track $index) {
-                <div class="flex flex-col gap-1">
+                <div class="flex flex-col gap-[3px]">
                   @for (day of week; track day?.date?.getTime() ?? $index) {
                     @if (day) {
                       <div 
-                        class="w-3 h-3 rounded-sm cursor-pointer transition-transform hover:scale-125"
+                        class="w-4 h-4 rounded-sm heatmap-cell cursor-pointer"
                         [class]="getColorClass(day.percentage)"
                         [title]="getTooltip(day)">
                       </div>
                     } @else {
-                      <div class="w-3 h-3"></div>
+                      <div class="w-4 h-4"></div>
                     }
                   }
                 </div>
@@ -90,21 +119,23 @@ import { forkJoin } from 'rxjs';
 
         <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
-          <div class="card text-center">
-            <p class="text-3xl font-bold text-primary-600">{{ totalCompletions() }}</p>
-            <p class="text-sm text-slate-500">Total Completions</p>
+          <div class="glass-card-hover p-6 text-center">
+            <p class="text-4xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">
+              {{ totalCompletions() }}
+            </p>
+            <p class="text-sm text-white/40 mt-2">Total Completions</p>
           </div>
-          <div class="card text-center">
-            <p class="text-3xl font-bold text-accent-500">{{ activeDays() }}</p>
-            <p class="text-sm text-slate-500">Active Days</p>
+          <div class="glass-card-hover p-6 text-center">
+            <p class="text-4xl font-bold text-accent-400">{{ activeDays() }}</p>
+            <p class="text-sm text-white/40 mt-2">Active Days</p>
           </div>
-          <div class="card text-center">
-            <p class="text-3xl font-bold text-blue-600">{{ currentStreak() }}</p>
-            <p class="text-sm text-slate-500">Current Streak</p>
+          <div class="glass-card-hover p-6 text-center">
+            <p class="text-4xl font-bold text-success-400">{{ currentStreak() }}</p>
+            <p class="text-sm text-white/40 mt-2">Current Streak</p>
           </div>
-          <div class="card text-center">
-            <p class="text-3xl font-bold text-purple-600">{{ longestStreak() }}</p>
-            <p class="text-sm text-slate-500">Longest Streak</p>
+          <div class="glass-card-hover p-6 text-center">
+            <p class="text-4xl font-bold text-streak-400 streak-fire">🔥 {{ longestStreak() }}</p>
+            <p class="text-sm text-white/40 mt-2">Longest Streak</p>
           </div>
         </div>
       </main>
@@ -112,152 +143,148 @@ import { forkJoin } from 'rxjs';
   `
 })
 export class CalendarComponent implements OnInit {
-    isLoading = signal(true);
-    habits = signal<Habit[]>([]);
-    logs = signal<HabitLog[]>([]);
+  isLoading = signal(true);
+  habits = signal<Habit[]>([]);
+  logs = signal<HabitLog[]>([]);
 
-    currentYear = new Date().getFullYear();
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  currentYear = new Date().getFullYear();
+  months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    weeks = computed(() => this.generateWeeks());
-    totalCompletions = computed(() => this.logs().length);
-    activeDays = computed(() => {
-        const uniqueDays = new Set(
-            this.logs().map(l => new Date(l.completedAt).toDateString())
-        );
-        return uniqueDays.size;
+  weeks = computed(() => this.generateWeeks());
+  totalCompletions = computed(() => this.logs().length);
+  activeDays = computed(() => {
+    const uniqueDays = new Set(
+      this.logs().map(l => new Date(l.completedAt).toDateString())
+    );
+    return uniqueDays.size;
+  });
+  currentStreak = signal(0);
+  longestStreak = signal(0);
+
+  constructor(private habitService: HabitService) { }
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    const yearStart = new Date(this.currentYear, 0, 1);
+    const yearEnd = new Date(this.currentYear, 11, 31);
+
+    forkJoin({
+      habits: this.habitService.getHabits(),
+      logs: this.habitService.getLogsForPeriod(yearStart, yearEnd)
+    }).subscribe({
+      next: ({ habits, logs }) => {
+        this.habits.set(habits);
+        this.logs.set(logs);
+        this.calculateStreaks(logs);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading.set(false);
+      }
     });
-    currentStreak = signal(0);
-    longestStreak = signal(0);
+  }
 
-    constructor(private habitService: HabitService) { }
+  private calculateStreaks(logs: HabitLog[]) {
+    const sortedDates = [...new Set(
+      logs.map(l => new Date(l.completedAt).toDateString())
+    )].map(d => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
 
-    ngOnInit() {
-        this.loadData();
+    if (sortedDates.length === 0) {
+      this.currentStreak.set(0);
+      this.longestStreak.set(0);
+      return;
     }
 
-    loadData() {
-        const yearStart = new Date(this.currentYear, 0, 1);
-        const yearEnd = new Date(this.currentYear, 11, 31);
+    let current = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let checkDate = today;
 
-        forkJoin({
-            habits: this.habitService.getHabits(),
-            logs: this.habitService.getLogsForPeriod(yearStart, yearEnd)
-        }).subscribe({
-            next: ({ habits, logs }) => {
-                this.habits.set(habits);
-                this.logs.set(logs);
-                this.calculateStreaks(logs);
-                this.isLoading.set(false);
-            },
-            error: (err) => {
-                console.error(err);
-                this.isLoading.set(false);
-            }
-        });
+    for (const date of sortedDates) {
+      date.setHours(0, 0, 0, 0);
+      if (date.getTime() === checkDate.getTime()) {
+        current++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else if (date.getTime() < checkDate.getTime()) {
+        break;
+      }
+    }
+    this.currentStreak.set(current);
+
+    let longest = 1;
+    let tempStreak = 1;
+    const chronological = sortedDates.sort((a, b) => a.getTime() - b.getTime());
+
+    for (let i = 1; i < chronological.length; i++) {
+      const diff = (chronological[i].getTime() - chronological[i - 1].getTime()) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        tempStreak++;
+        longest = Math.max(longest, tempStreak);
+      } else {
+        tempStreak = 1;
+      }
+    }
+    this.longestStreak.set(longest);
+  }
+
+  private generateWeeks(): (DayActivity | null)[][] {
+    const weeks: (DayActivity | null)[][] = [];
+    const yearStart = new Date(this.currentYear, 0, 1);
+    const yearEnd = new Date(this.currentYear, 11, 31);
+
+    const displayStart = new Date(yearStart);
+    displayStart.setDate(displayStart.getDate() - displayStart.getDay());
+
+    const logsByDate = new Map<string, number>();
+    const habitCount = this.habits().length || 1;
+
+    for (const log of this.logs()) {
+      const dateStr = new Date(log.completedAt).toDateString();
+      logsByDate.set(dateStr, (logsByDate.get(dateStr) || 0) + 1);
     }
 
-    private calculateStreaks(logs: HabitLog[]) {
-        const sortedDates = [...new Set(
-            logs.map(l => new Date(l.completedAt).toDateString())
-        )].map(d => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
-
-        if (sortedDates.length === 0) {
-            this.currentStreak.set(0);
-            this.longestStreak.set(0);
-            return;
+    let currentDate = new Date(displayStart);
+    while (currentDate <= yearEnd || currentDate.getDay() !== 0) {
+      const week: (DayActivity | null)[] = [];
+      for (let i = 0; i < 7; i++) {
+        if (currentDate >= yearStart && currentDate <= yearEnd) {
+          const dateStr = currentDate.toDateString();
+          const completed = logsByDate.get(dateStr) || 0;
+          week.push({
+            date: new Date(currentDate),
+            completedCount: completed,
+            totalCount: habitCount,
+            percentage: Math.min(100, (completed / habitCount) * 100)
+          });
+        } else {
+          week.push(null);
         }
-
-        // Current streak
-        let current = 0;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let checkDate = today;
-
-        for (const date of sortedDates) {
-            date.setHours(0, 0, 0, 0);
-            if (date.getTime() === checkDate.getTime()) {
-                current++;
-                checkDate.setDate(checkDate.getDate() - 1);
-            } else if (date.getTime() < checkDate.getTime()) {
-                break;
-            }
-        }
-        this.currentStreak.set(current);
-
-        // Longest streak
-        let longest = 1;
-        let tempStreak = 1;
-        const chronological = sortedDates.sort((a, b) => a.getTime() - b.getTime());
-
-        for (let i = 1; i < chronological.length; i++) {
-            const diff = (chronological[i].getTime() - chronological[i - 1].getTime()) / (1000 * 60 * 60 * 24);
-            if (diff === 1) {
-                tempStreak++;
-                longest = Math.max(longest, tempStreak);
-            } else {
-                tempStreak = 1;
-            }
-        }
-        this.longestStreak.set(longest);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      weeks.push(week);
     }
 
-    private generateWeeks(): (DayActivity | null)[][] {
-        const weeks: (DayActivity | null)[][] = [];
-        const yearStart = new Date(this.currentYear, 0, 1);
-        const yearEnd = new Date(this.currentYear, 11, 31);
+    return weeks;
+  }
 
-        // Find the first Sunday of the display
-        const displayStart = new Date(yearStart);
-        displayStart.setDate(displayStart.getDate() - displayStart.getDay());
+  getColorClass(percentage: number): string {
+    if (percentage === 0) return 'bg-dark-600 border border-white/5';
+    if (percentage < 25) return 'bg-primary-900/50 border border-primary-700/30';
+    if (percentage < 50) return 'bg-primary-700/70 border border-primary-600/30';
+    if (percentage < 75) return 'bg-primary-500 border border-primary-400/30';
+    return 'bg-primary-400 shadow-glow border border-primary-300/30';
+  }
 
-        // Group logs by date
-        const logsByDate = new Map<string, number>();
-        const habitCount = this.habits().length || 1;
-
-        for (const log of this.logs()) {
-            const dateStr = new Date(log.completedAt).toDateString();
-            logsByDate.set(dateStr, (logsByDate.get(dateStr) || 0) + 1);
-        }
-
-        let currentDate = new Date(displayStart);
-        while (currentDate <= yearEnd || currentDate.getDay() !== 0) {
-            const week: (DayActivity | null)[] = [];
-            for (let i = 0; i < 7; i++) {
-                if (currentDate >= yearStart && currentDate <= yearEnd) {
-                    const dateStr = currentDate.toDateString();
-                    const completed = logsByDate.get(dateStr) || 0;
-                    week.push({
-                        date: new Date(currentDate),
-                        completedCount: completed,
-                        totalCount: habitCount,
-                        percentage: Math.min(100, (completed / habitCount) * 100)
-                    });
-                } else {
-                    week.push(null);
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            weeks.push(week);
-        }
-
-        return weeks;
-    }
-
-    getColorClass(percentage: number): string {
-        if (percentage === 0) return 'bg-slate-200';
-        if (percentage < 25) return 'bg-primary-200';
-        if (percentage < 50) return 'bg-primary-400';
-        if (percentage < 75) return 'bg-primary-600';
-        return 'bg-primary-800';
-    }
-
-    getTooltip(day: DayActivity): string {
-        const dateStr = day.date.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        });
-        return `${dateStr}: ${day.completedCount} habits completed`;
-    }
+  getTooltip(day: DayActivity): string {
+    const dateStr = day.date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    return `${dateStr}: ${day.completedCount} habits completed`;
+  }
 }

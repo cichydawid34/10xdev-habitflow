@@ -10,34 +10,63 @@ import { Book, BookStatus } from '../../shared/models';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <div class="min-h-screen bg-slate-50">
-      <!-- Header -->
-      <header class="bg-white border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <a routerLink="/dashboard" class="text-slate-400 hover:text-slate-600">←</a>
-            <span class="text-2xl">📚</span>
-            <h1 class="text-xl font-bold text-slate-800">Reading List</h1>
+    <div class="min-h-screen">
+      <!-- Ambient glow -->
+      <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 right-1/3 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-1/4 left-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <nav class="fixed left-0 top-0 bottom-0 w-20 lg:w-64 glass-card rounded-none border-r border-white/5 z-20">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-10">
+            <span class="text-3xl">🎯</span>
+            <h1 class="hidden lg:block text-xl font-bold bg-gradient-to-r from-white to-primary-400 bg-clip-text text-transparent">
+              HabitFlow
+            </h1>
           </div>
-          <button 
-            (click)="showAddDialog.set(true)"
-            class="btn-primary">
-            + Add Book
+          <div class="space-y-2">
+            <a routerLink="/dashboard" class="nav-item">
+              <span class="text-xl">📊</span>
+              <span class="hidden lg:block">Dashboard</span>
+            </a>
+            <a routerLink="/calendar" class="nav-item">
+              <span class="text-xl">📅</span>
+              <span class="hidden lg:block">Calendar</span>
+            </a>
+            <a routerLink="/books" class="nav-item active">
+              <span class="text-xl">📚</span>
+              <span class="hidden lg:block">Books</span>
+            </a>
+            <a routerLink="/digest" class="nav-item">
+              <span class="text-xl">✨</span>
+              <span class="hidden lg:block">AI Digest</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="ml-20 lg:ml-64 p-8 relative z-10">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8">
+          <div>
+            <h2 class="text-4xl font-bold">Reading List</h2>
+            <p class="text-white/40 mt-2">Track your reading journey</p>
+          </div>
+          <button (click)="showAddDialog.set(true)" class="btn-primary">
+            <span class="mr-2">+</span> Add Book
           </button>
         </div>
-      </header>
 
-      <main class="max-w-6xl mx-auto px-4 py-8">
         <!-- Tabs -->
-        <div class="flex gap-2 mb-6">
+        <div class="flex gap-2 mb-8 flex-wrap">
           @for (tab of tabs; track tab.value) {
             <button 
               (click)="activeTab.set(tab.value)"
-              class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
-              [class.bg-primary-100]="activeTab() === tab.value"
-              [class.text-primary-700]="activeTab() === tab.value"
-              [class.text-slate-600]="activeTab() !== tab.value"
-              [class.hover:bg-slate-100]="activeTab() !== tab.value">
+              class="tab-btn"
+              [class.tab-active]="activeTab() === tab.value">
               {{ tab.icon }} {{ tab.label }} ({{ getCountByStatus(tab.value) }})
             </button>
           }
@@ -45,17 +74,14 @@ import { Book, BookStatus } from '../../shared/models';
 
         <!-- Books Grid -->
         @if (isLoading()) {
-          <div class="flex justify-center py-12">
-            <svg class="animate-spin h-8 w-8 text-primary-500" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
+          <div class="flex justify-center py-16">
+            <div class="spinner"></div>
           </div>
         } @else if (filteredBooks().length === 0) {
-          <div class="card text-center py-12">
-            <p class="text-4xl mb-4">📖</p>
-            <h3 class="text-xl font-semibold text-slate-800 mb-2">No books yet</h3>
-            <p class="text-slate-500 mb-4">Start tracking your reading journey!</p>
+          <div class="glass-card text-center py-16">
+            <p class="text-6xl mb-6">📖</p>
+            <h3 class="text-2xl font-bold text-white mb-3">No books yet</h3>
+            <p class="text-white/40 mb-6">Start tracking your reading journey!</p>
             <button (click)="showAddDialog.set(true)" class="btn-primary">
               Add Your First Book
             </button>
@@ -63,32 +89,32 @@ import { Book, BookStatus } from '../../shared/models';
         } @else {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (book of filteredBooks(); track book.id) {
-              <div class="card hover:shadow-md transition-shadow">
-                <div class="flex justify-between items-start mb-3">
-                  <div class="flex-1">
-                    <h3 class="font-semibold text-slate-800 line-clamp-1">{{ book.title }}</h3>
-                    <p class="text-sm text-slate-500">{{ book.author || 'Unknown author' }}</p>
+              <div class="glass-card-hover p-6 group">
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-white text-lg truncate">{{ book.title }}</h3>
+                    <p class="text-sm text-white/40">{{ book.author || 'Unknown author' }}</p>
                   </div>
                   <button 
                     (click)="deleteBook(book)"
-                    class="text-slate-400 hover:text-red-500 p-1">
+                    class="text-white/30 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     🗑️
                   </button>
                 </div>
 
                 @if (book.status === 'reading' && book.totalPages) {
-                  <div class="mb-3">
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-slate-500">Progress</span>
-                      <span class="text-primary-600 font-medium">{{ book.progress }}%</span>
+                  <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-2">
+                      <span class="text-white/40">Progress</span>
+                      <span class="text-primary-400 font-semibold">{{ book.progress }}%</span>
                     </div>
-                    <div class="w-full bg-slate-200 rounded-full h-2">
+                    <div class="w-full bg-dark-600 rounded-full h-3 overflow-hidden">
                       <div 
-                        class="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                        class="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-500"
                         [style.width.%]="book.progress">
                       </div>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">
+                    <p class="text-xs text-white/30 mt-2">
                       Page {{ book.currentPage }} of {{ book.totalPages }}
                     </p>
                   </div>
@@ -100,29 +126,18 @@ import { Book, BookStatus } from '../../shared/models';
                       (change)="updateProgress(book, $event)"
                       min="0"
                       [max]="book.totalPages"
-                      class="input flex-1 py-1 text-sm">
-                    <button 
-                      (click)="markAsComplete(book)"
-                      class="btn-secondary text-sm py-1">
+                      class="input-glass flex-1 py-2 text-sm text-center">
+                    <button (click)="markAsComplete(book)" class="btn-secondary text-sm py-2 px-4">
                       ✓ Done
                     </button>
                   </div>
                 } @else {
-                  <div class="flex items-center justify-between text-sm">
-                    <span 
-                      class="px-2 py-1 rounded-full"
-                      [class.bg-green-100]="book.status === 'completed'"
-                      [class.text-green-700]="book.status === 'completed'"
-                      [class.bg-yellow-100]="book.status === 'paused'"
-                      [class.text-yellow-700]="book.status === 'paused'"
-                      [class.bg-blue-100]="book.status === 'want_to_read'"
-                      [class.text-blue-700]="book.status === 'want_to_read'">
+                  <div class="flex items-center justify-between">
+                    <span class="status-badge" [attr.data-status]="book.status">
                       {{ getStatusLabel(book.status) }}
                     </span>
                     @if (book.status !== 'reading') {
-                      <button 
-                        (click)="startReading(book)"
-                        class="text-primary-600 hover:underline">
+                      <button (click)="startReading(book)" class="text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors">
                         Start reading →
                       </button>
                     }
@@ -136,38 +151,38 @@ import { Book, BookStatus } from '../../shared/models';
 
       <!-- Add Book Dialog -->
       @if (showAddDialog()) {
-        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="showAddDialog.set(false)">
-          <div class="bg-white rounded-2xl w-full max-w-md p-6 m-4" (click)="$event.stopPropagation()">
-            <h2 class="text-xl font-bold text-slate-800 mb-6">Add New Book</h2>
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showAddDialog.set(false)">
+          <div class="glass-card p-8 w-full max-w-md" (click)="$event.stopPropagation()">
+            <h2 class="text-2xl font-bold text-white mb-6">Add New Book</h2>
 
-            <div class="space-y-4">
+            <div class="space-y-5">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Title</label>
+                <label class="block text-white/60 text-sm mb-2">Title</label>
                 <input 
                   type="text" 
                   [(ngModel)]="newBook.title"
-                  class="input"
+                  class="input-glass"
                   placeholder="Book title">
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Author</label>
+                <label class="block text-white/60 text-sm mb-2">Author</label>
                 <input 
                   type="text" 
                   [(ngModel)]="newBook.author"
-                  class="input"
+                  class="input-glass"
                   placeholder="Author name">
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Total Pages</label>
+                <label class="block text-white/60 text-sm mb-2">Total Pages</label>
                 <input 
                   type="number" 
                   [(ngModel)]="newBook.totalPages"
-                  class="input"
+                  class="input-glass"
                   placeholder="Number of pages">
               </div>
             </div>
 
-            <div class="flex gap-3 mt-6">
+            <div class="flex gap-3 mt-8">
               <button (click)="showAddDialog.set(false)" class="flex-1 btn-secondary">
                 Cancel
               </button>
@@ -182,7 +197,45 @@ import { Book, BookStatus } from '../../shared/models';
         </div>
       }
     </div>
-  `
+  `,
+  styles: [`
+    .tab-btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      background: rgba(34, 34, 46, 0.5);
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .tab-btn:hover {
+      background: rgba(42, 42, 56, 0.5);
+      color: white;
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+      color: white;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    }
+    .status-badge {
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .status-badge[data-status="completed"] {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+    .status-badge[data-status="paused"] {
+      background: rgba(249, 115, 22, 0.2);
+      color: #fb923c;
+    }
+    .status-badge[data-status="want_to_read"] {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
+  `]
 })
 export class BooksComponent implements OnInit {
   books = signal<Book[]>([]);
@@ -289,4 +342,3 @@ export class BooksComponent implements OnInit {
     }
   }
 }
-

@@ -13,73 +13,129 @@ import { AddHabitDialogComponent } from './components/add-habit-dialog.component
   standalone: true,
   imports: [CommonModule, RouterLink, HabitCardComponent, AddHabitDialogComponent],
   template: `
-    <div class="min-h-screen bg-slate-50">
-      <!-- Header -->
-      <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <span class="text-2xl">🎯</span>
-            <h1 class="text-xl font-bold text-slate-800">HabitFlow</h1>
-          </div>
-          <nav class="flex items-center gap-4">
-            <a routerLink="/books" class="text-slate-600 hover:text-primary-600 font-medium">📚 Books</a>
-            <a routerLink="/calendar" class="text-slate-600 hover:text-primary-600 font-medium">📅 Calendar</a>
-            <a routerLink="/digest" class="text-slate-600 hover:text-primary-600 font-medium">✨ AI Digest</a>
-            <button 
-              (click)="signOut()" 
-              class="text-slate-500 hover:text-slate-700">
-              Logout
-            </button>
-          </nav>
-        </div>
-      </header>
+    <div class="min-h-screen">
+      <!-- Ambient glow effect -->
+      <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl"></div>
+      </div>
 
-      <main class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Today's Date -->
-        <div class="mb-8">
-          <p class="text-slate-500 text-sm">{{ todayFormatted }}</p>
-          <h2 class="text-3xl font-bold text-slate-800">Today's Habits</h2>
+      <!-- Sidebar -->
+      <nav class="fixed left-0 top-0 bottom-0 w-20 lg:w-64 glass-card rounded-none border-r border-white/5 z-20">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-10">
+            <span class="text-3xl">🎯</span>
+            <h1 class="hidden lg:block text-xl font-bold bg-gradient-to-r from-white to-primary-400 bg-clip-text text-transparent">
+              HabitFlow
+            </h1>
+          </div>
+
+          <div class="space-y-2">
+            <a routerLink="/dashboard" class="nav-item active">
+              <span class="text-xl">📊</span>
+              <span class="hidden lg:block">Dashboard</span>
+            </a>
+            <a routerLink="/calendar" class="nav-item">
+              <span class="text-xl">📅</span>
+              <span class="hidden lg:block">Calendar</span>
+            </a>
+            <a routerLink="/books" class="nav-item">
+              <span class="text-xl">📚</span>
+              <span class="hidden lg:block">Books</span>
+            </a>
+            <a routerLink="/digest" class="nav-item">
+              <span class="text-xl">✨</span>
+              <span class="hidden lg:block">AI Digest</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="absolute bottom-6 left-0 right-0 px-6">
+          <button 
+            (click)="signOut()" 
+            class="nav-item w-full text-white/40 hover:text-white">
+            <span class="text-xl">🚪</span>
+            <span class="hidden lg:block">Logout</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="ml-20 lg:ml-64 p-8 relative z-10">
+        <!-- Header -->
+        <div class="mb-10">
+          <p class="text-white/40 text-sm mb-1">{{ todayFormatted }}</p>
+          <h2 class="text-4xl font-bold">Today's Habits</h2>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div class="card">
-            <p class="text-slate-500 text-sm">Completed Today</p>
-            <p class="text-3xl font-bold text-primary-600">{{ completedToday() }}/{{ habits().length }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <!-- Completed Today -->
+          <div class="glass-card-hover p-6 group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-white/40 text-sm">Completed Today</span>
+              <div class="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center group-hover:bg-primary-500/30 transition-colors">
+                <span class="text-xl">✅</span>
+              </div>
+            </div>
+            <p class="text-4xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">
+              {{ completedToday() }}/{{ habits().length }}
+            </p>
+            <div class="mt-3 h-2 bg-dark-600 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-500"
+                [style.width.%]="habits().length ? (completedToday() / habits().length * 100) : 0">
+              </div>
+            </div>
           </div>
-          <div class="card">
-            <p class="text-slate-500 text-sm">Longest Streak</p>
-            <p class="text-3xl font-bold text-accent-500">🔥 {{ longestStreak() }} days</p>
+
+          <!-- Longest Streak -->
+          <div class="glass-card-hover p-6 group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-white/40 text-sm">Longest Streak</span>
+              <div class="w-10 h-10 rounded-xl bg-streak-500/20 flex items-center justify-center group-hover:shadow-streak transition-all">
+                <span class="text-xl streak-fire">🔥</span>
+              </div>
+            </div>
+            <p class="text-4xl font-bold text-streak-400">
+              {{ longestStreak() }} <span class="text-lg text-white/40">days</span>
+            </p>
           </div>
-          <div class="card">
-            <p class="text-slate-500 text-sm">Currently Reading</p>
-            <p class="text-3xl font-bold text-blue-600">📖 {{ readingBooks().length }}</p>
+
+          <!-- Currently Reading -->
+          <div class="glass-card-hover p-6 group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-white/40 text-sm">Currently Reading</span>
+              <div class="w-10 h-10 rounded-xl bg-accent-500/20 flex items-center justify-center group-hover:bg-accent-500/30 transition-colors">
+                <span class="text-xl">📖</span>
+              </div>
+            </div>
+            <p class="text-4xl font-bold text-accent-400">
+              {{ readingBooks().length }} <span class="text-lg text-white/40">books</span>
+            </p>
           </div>
         </div>
 
-        <!-- Habits Grid -->
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold text-slate-800">Your Habits</h3>
+        <!-- Habits Section -->
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-white/90">Your Habits</h3>
           <button 
             (click)="showAddDialog.set(true)"
             class="btn-primary"
             data-testid="add-habit-btn">
-            + Add Habit
+            <span class="mr-2">+</span> Add Habit
           </button>
         </div>
 
         @if (isLoading()) {
-          <div class="flex justify-center py-12">
-            <svg class="animate-spin h-8 w-8 text-primary-500" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
+          <div class="flex justify-center py-16">
+            <div class="spinner"></div>
           </div>
         } @else if (habits().length === 0) {
-          <div class="card text-center py-12">
-            <p class="text-4xl mb-4">🌱</p>
-            <h3 class="text-xl font-semibold text-slate-800 mb-2">No habits yet</h3>
-            <p class="text-slate-500 mb-4">Start building your first habit today!</p>
+          <div class="glass-card text-center py-16">
+            <p class="text-6xl mb-6">🌱</p>
+            <h3 class="text-2xl font-bold text-white mb-3">No habits yet</h3>
+            <p class="text-white/40 mb-6">Start building your first habit today!</p>
             <button (click)="showAddDialog.set(true)" class="btn-primary">
               Add Your First Habit
             </button>
@@ -99,27 +155,29 @@ import { AddHabitDialogComponent } from './components/add-habit-dialog.component
         <!-- Reading Progress Preview -->
         @if (readingBooks().length > 0) {
           <div class="mt-12">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-slate-800">Currently Reading</h3>
-              <a routerLink="/books" class="text-primary-600 font-medium hover:underline">View all →</a>
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-white/90">Currently Reading</h3>
+              <a routerLink="/books" class="text-primary-400 font-medium hover:text-primary-300 transition-colors">
+                View all →
+              </a>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @for (book of readingBooks().slice(0, 2); track book.id) {
-                <div class="card">
-                  <div class="flex justify-between items-start mb-2">
+                <div class="glass-card-hover p-6">
+                  <div class="flex justify-between items-start mb-4">
                     <div>
-                      <h4 class="font-semibold text-slate-800">{{ book.title }}</h4>
-                      <p class="text-sm text-slate-500">{{ book.author || 'Unknown author' }}</p>
+                      <h4 class="font-semibold text-white text-lg">{{ book.title }}</h4>
+                      <p class="text-sm text-white/40">{{ book.author || 'Unknown author' }}</p>
                     </div>
-                    <span class="text-sm font-medium text-primary-600">{{ book.progress }}%</span>
+                    <span class="text-lg font-bold text-primary-400">{{ book.progress }}%</span>
                   </div>
-                  <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div class="w-full bg-dark-600 rounded-full h-3 overflow-hidden">
                     <div 
-                      class="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                      class="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-500"
                       [style.width.%]="book.progress">
                     </div>
                   </div>
-                  <p class="text-xs text-slate-400 mt-2">
+                  <p class="text-sm text-white/30 mt-3">
                     Page {{ book.currentPage }} of {{ book.totalPages || '?' }}
                   </p>
                 </div>
@@ -212,4 +270,3 @@ export class DashboardComponent implements OnInit {
     this.authService.signOut();
   }
 }
-

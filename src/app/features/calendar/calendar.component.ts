@@ -103,12 +103,12 @@ import { forkJoin } from 'rxjs';
                   @for (day of week; track day?.date?.getTime() ?? $index) {
                     @if (day) {
                       <div 
-                        class="w-4 h-4 rounded-sm heatmap-cell cursor-pointer"
-                        [class]="getColorClass(day.percentage)"
+                        class="heatmap-cell cursor-pointer"
+                        [ngStyle]="getColorStyle(day.percentage)"
                         [title]="getTooltip(day)">
                       </div>
                     } @else {
-                      <div class="w-4 h-4"></div>
+                      <div style="width: 16px; height: 16px;"></div>
                     }
                   }
                 </div>
@@ -271,12 +271,32 @@ export class CalendarComponent implements OnInit {
     return weeks;
   }
 
-  getColorClass(percentage: number): string {
-    if (percentage === 0) return 'bg-dark-600 border border-white/5';
-    if (percentage < 25) return 'bg-primary-900/50 border border-primary-700/30';
-    if (percentage < 50) return 'bg-primary-700/70 border border-primary-600/30';
-    if (percentage < 75) return 'bg-primary-500 border border-primary-400/30';
-    return 'bg-primary-400 shadow-glow border border-primary-300/30';
+  getColorStyle(percentage: number): { [key: string]: string } {
+    const baseStyle = {
+      width: '16px',
+      height: '16px',
+      borderRadius: '3px',
+      border: '1px solid'
+    };
+
+    if (percentage === 0) {
+      return { ...baseStyle, backgroundColor: '#22222e', borderColor: 'rgba(255,255,255,0.05)' };
+    }
+    if (percentage < 25) {
+      return { ...baseStyle, backgroundColor: 'rgba(76, 29, 149, 0.5)', borderColor: 'rgba(109, 40, 217, 0.3)' };
+    }
+    if (percentage < 50) {
+      return { ...baseStyle, backgroundColor: 'rgba(109, 40, 217, 0.7)', borderColor: 'rgba(124, 58, 237, 0.3)' };
+    }
+    if (percentage < 75) {
+      return { ...baseStyle, backgroundColor: '#8b5cf6', borderColor: 'rgba(167, 139, 250, 0.3)' };
+    }
+    return {
+      ...baseStyle,
+      backgroundColor: '#a78bfa',
+      borderColor: 'rgba(196, 181, 253, 0.3)',
+      boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
+    };
   }
 
   getTooltip(day: DayActivity): string {

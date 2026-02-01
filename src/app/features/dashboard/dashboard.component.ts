@@ -7,11 +7,12 @@ import { BookService } from '../../core/services/book.service';
 import { Habit, Book } from '../../shared/models';
 import { HabitCardComponent } from './components/habit-card.component';
 import { AddHabitDialogComponent } from './components/add-habit-dialog.component';
+import { EditHabitDialogComponent } from './components/edit-habit-dialog.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, HabitCardComponent, AddHabitDialogComponent],
+  imports: [CommonModule, RouterLink, HabitCardComponent, AddHabitDialogComponent, EditHabitDialogComponent],
   template: `
     <div class="min-h-screen">
       <!-- Ambient glow effect -->
@@ -146,6 +147,7 @@ import { AddHabitDialogComponent } from './components/add-habit-dialog.component
               <app-habit-card 
                 [habit]="habit"
                 (toggle)="toggleHabit($event)"
+                (edit)="openEditDialog($event)"
                 (delete)="deleteHabit($event)">
               </app-habit-card>
             }
@@ -194,6 +196,15 @@ import { AddHabitDialogComponent } from './components/add-habit-dialog.component
           (save)="createHabit($event)">
         </app-add-habit-dialog>
       }
+
+      <!-- Edit Habit Dialog -->
+      @if (editingHabit()) {
+        <app-edit-habit-dialog
+          [habit]="editingHabit()!"
+          (close)="editingHabit.set(null)"
+          (save)="updateHabit($event)">
+        </app-edit-habit-dialog>
+      }
     </div>
   `
 })
@@ -202,6 +213,7 @@ export class DashboardComponent implements OnInit {
   books = signal<Book[]>([]);
   isLoading = signal(true);
   showAddDialog = signal(false);
+  editingHabit = signal<Habit | null>(null);
 
   todayFormatted = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -256,6 +268,21 @@ export class DashboardComponent implements OnInit {
     const observable = await this.habitService.createHabit(data);
     observable.subscribe(() => {
       this.showAddDialog.set(false);
+      this.loadData();
+    });
+  }
+
+  openEditDialog(habit: Habit) {
+    this.editingHabit.set(habit);
+  }
+
+  updateHabit(data: { id: string; name: string; icon: string; color: string }) {
+    this.habitService.updateHabit(data.id, {
+      name: data.name,
+      icon: data.icon,
+      color: data.color
+    }).subscribe(() => {
+      this.editingHabit.set(null);
       this.loadData();
     });
   }

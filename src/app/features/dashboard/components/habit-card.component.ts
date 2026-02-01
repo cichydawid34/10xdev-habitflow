@@ -64,21 +64,36 @@ import { Habit } from '../../../shared/models';
         </div>
       </div>
 
-      <!-- Delete button -->
-      <button 
-        (click)="onDelete($event)"
-        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-red-400 p-1">
-        ✕
-      </button>
+      <!-- Action buttons -->
+      <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          (click)="onEdit($event)"
+          class="text-white/30 hover:text-primary-400 p-1 transition-colors"
+          title="Edit habit">
+          ✏️
+        </button>
+        <button 
+          (click)="onDelete($event)"
+          class="text-white/30 hover:text-red-400 p-1 transition-colors"
+          title="Delete habit">
+          ✕
+        </button>
+      </div>
     </div>
   `
 })
 export class HabitCardComponent {
   @Input() habit!: Habit;
   @Output() toggle = new EventEmitter<Habit>();
+  @Output() edit = new EventEmitter<Habit>();
   @Output() delete = new EventEmitter<Habit>();
 
   circumference = 2 * Math.PI * 15.9;
+
+  onEdit(event: Event) {
+    event.stopPropagation();
+    this.edit.emit(this.habit);
+  }
 
   onDelete(event: Event) {
     event.stopPropagation();

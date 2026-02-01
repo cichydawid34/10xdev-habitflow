@@ -40,3 +40,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Environment files with secrets (DO NOT COMMIT!)
+/src/environments/environment.ts
+/src/environments/environment.prod.ts
+
+# Reference project (not part of this repo)
+/10xdev-main
